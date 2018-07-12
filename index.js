@@ -5,16 +5,16 @@ const { makeExecutableSchema } = require('graphql-tools');
 const DataLoader = require('dataloader');
 
 // Some fake data
-const books = [
-  {
+const books = {
+  harry: {
     title: "Harry Potter and the Sorcerer's stone",
     author: 'J.K. Rowling',
   },
-  {
+  jurassic: {
     title: 'Jurassic Park',
     author: 'Michael Crichton',
   },
-];
+};
 
 // The GraphQL schema in string form
 const typeDefs = `
@@ -40,9 +40,9 @@ const app = express();
 
 // The GraphQL endpoint
 app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
-  const bookLoader = new DataLoader((seriesIds) => {
-    console.log('loadign books for ', seriesIds)
-    return Promise.resolve(seriesIds.map(x => books[0]))
+  const bookLoader = new DataLoader((bookIds) => {
+    console.log('loadign books for ', bookIds)
+    return Promise.resolve(bookIds.map(id => books[id]))
   });
   return { schema, context: {bookLoader} }
 }));
