@@ -41,7 +41,9 @@ const schema = makeExecutableSchema({
 const app = express();
 
 // The GraphQL endpoint
-app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
+app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
+  return { schema }
+}));
 
 // GraphiQL, a visual editor for queries
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
