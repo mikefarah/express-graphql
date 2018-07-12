@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
+const DataLoader = require('dataloader');
 
 // Some fake data
 const books = [
@@ -17,17 +18,14 @@ const books = [
 
 // The GraphQL schema in string form
 const typeDefs = `
-  type Query { books: [Book] }
+  type Query { book(bookId: String): Book }
   type Book { title: String, author: String }
 `;
 
 // The resolvers
 const resolvers = {
   Query: {
-    books: () => {
-      console.log('fetching books')
-      return books
-    }
+    book: (parent, args, context) => context.bookLoader.load(args.bookId),
   },
 };
 
@@ -42,7 +40,11 @@ const app = express();
 
 // The GraphQL endpoint
 app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
-  return { schema }
+  const bookLoader = new DataLoader((seriesIds) => {
+    console.log('loadign books for ', seriesIds)
+    return Promise.resolve(seriesIds.map(x => books[0]))
+  });
+  return { schema, context: {bookLoader} }
 }));
 
 // GraphiQL, a visual editor for queries
