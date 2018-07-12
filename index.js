@@ -8,18 +8,28 @@ const DataLoader = require('dataloader');
 const books = {
   harry: {
     title: "Harry Potter and the Sorcerer's stone",
-    author: 'J.K. Rowling',
+    authorId: 'rowling',
+  },
+  harry2: {
+    title: "Harry Potter and the Seven dwarfs",
+    authorId: 'rowling',
   },
   jurassic: {
     title: 'Jurassic Park',
-    author: 'Michael Crichton',
+    authorId: 'crichton',
   },
 };
 
+const authors = {
+  rowling: {name: 'J.K. Rowling'},
+  crichton: {name: 'Michael Crichton'},
+}
+
 // The GraphQL schema in string form
 const typeDefs = `
-  type Query { book(bookId: String): Book }
-  type Book { title: String, author: String }
+  type Query { book(bookId: String!): Book }
+  type Book { title: String, author: Person }
+  type Person { name: String }
 `;
 
 // The resolvers
@@ -27,6 +37,9 @@ const resolvers = {
   Query: {
     book: (parent, args, context) => context.bookLoader.load(args.bookId),
   },
+  Book: {
+    author: (parent, args, context) => context.authorLoader.load(parent.authorId),
+  }
 };
 
 // Put together a schema
@@ -40,11 +53,15 @@ const app = express();
 
 // The GraphQL endpoint
 app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
-  const bookLoader = new DataLoader((bookIds) => {
-    console.log('loadign books for ', bookIds)
+  const bookLoader = new DataLoader(bookIds => {
+    console.log('loading books:', bookIds)
     return Promise.resolve(bookIds.map(id => books[id]))
   });
-  return { schema, context: {bookLoader} }
+  const authorLoader = new DataLoader(authorIds => {
+    console.log('loading authors:', authorIds)
+    return Promise.resolve(authorIds.map(id => authors[id]))
+  })
+  return { schema, context: {bookLoader, authorLoader} }
 }));
 
 // GraphiQL, a visual editor for queries
