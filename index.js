@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors')
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
 const DataLoader = require('dataloader');
@@ -50,6 +51,7 @@ const schema = makeExecutableSchema({
 
 // Initialize the app
 const app = express();
+app.use(cors())
 
 // The GraphQL endpoint
 app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
@@ -68,6 +70,6 @@ app.use('/graphql', bodyParser.json(), graphqlExpress((req) => {
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 // Start the server
-app.listen(3000, () => {
-  console.log('Go to http://localhost:3000/graphiql to run queries!');
+app.listen(3001, () => {
+  console.log('Go to http://localhost:3001/graphiql to run queries!');
 });
